@@ -7,6 +7,7 @@
 package loghub
 
 import (
+	"github.com/dbratus/loghub/auth"
 	"github.com/dbratus/loghub/lhproto"
 	"time"
 )
@@ -20,6 +21,7 @@ const (
 type Client struct {
 	client         lhproto.ProtocolHandler
 	newEntriesChan chan *newLogEntry
+	cred           lhproto.Credentials
 	closeChan      chan chan bool
 }
 
@@ -49,20 +51,53 @@ type newLogEntry struct {
 	message  string
 }
 
+type ClientOptions struct {
+	//How many connections may be maintained simultaneously.
+	//If omitted, the default is 1.
+	MaxConnections int
+
+	//Whether to use TLS connection.
+	UseTls bool
+
+	//Whether to trust any certificate that the server returns.
+	SkipCertValidation bool
+
+	//User name.
+	User string
+
+	//User password.
+	Password string
+}
+
 // Creates a new client connected to log or hub at specified address and port.
 // Address may be specified in forms 'ip:port', 'hostname:port' or ':port' for
 // local connection.
-//
-// The client maintains connection pool. Its maximum size can be specified
-// via maxConnections parameter.
-func NewClient(address string, maxConnections int) *Client {
-	if maxConnections <= 0 {
-		panic("Number of connections must be a positive value.")
+func NewClient(address string, options *ClientOptions) *Client {
+	if options == nil {
+		panic("Options must be specified.")
+	}
+
+	var maxConnections int
+
+	if options.MaxConnections <= 0 {
+		maxConnections = 1
+	} else {
+		maxConnections = options.MaxConnections
+	}
+
+	var cred lhproto.Credentials
+
+	if options.User == "" {
+		cred.User = auth.Anonymous
+	} else {
+		cred.User = options.User
+		cred.Password = options.Password
 	}
 
 	cli := &Client{
-		lhproto.NewClient(address, maxConnections),
+		lhproto.NewClient(address, maxConnections, options.UseTls, options.SkipCertValidation),
 		make(chan *newLogEntry),
+		cred,
 		make(chan chan bool),
 	}
 
@@ -86,7 +121,7 @@ func (cli *Client) writeLog() {
 
 		entries := make(chan *lhproto.IncomingLogEntryJSON, backlogLen)
 
-		go cli.client.Write(entries)
+		go cli.client.Write(&cli.cred, entries)
 
 		for _, ent := range logBuf {
 			entries <- &lhproto.IncomingLogEntryJSON{
@@ -176,7 +211,7 @@ func (cli *Client) Read(from, to time.Time, minSev, maxSev int, sources []string
 
 	close(queries)
 
-	go cli.client.Read(queries, entries)
+	go cli.client.Read(&cli.cred, queries, entries)
 
 	go func() {
 		for ent := range entries {
@@ -197,7 +232,7 @@ func (cli *Client) Read(from, to time.Time, minSev, maxSev int, sources []string
 // Truncates the log before the specified time.
 // If source is an empty string, all sources are truncated.
 func (cli *Client) Truncate(limit time.Time, source string) {
-	cli.client.Truncate(&lhproto.TruncateJSON{source, timeToTimestamp(limit)})
+	cli.client.Truncate(&cli.cred, &lhproto.TruncateJSON{source, timeToTimestamp(limit)})
 }
 
 // Gets logs information.
@@ -205,7 +240,7 @@ func (cli *Client) Stat() chan *LogInfo {
 	stats := make(chan *lhproto.StatJSON)
 	result := make(chan *LogInfo)
 
-	go cli.client.Stat(stats)
+	go cli.client.Stat(&cli.cred, stats)
 
 	go func() {
 		for stat := range stats {

@@ -11,7 +11,11 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	log := NewClient(":10001", 1)
+	logOptions := ClientOptions{
+		UseTls:             true,
+		SkipCertValidation: true,
+	}
+	log := NewClient(":10001", &logOptions)
 
 	for i := 0; i < 10; i++ {
 		log.Write(1, "Test", "Test message.")
@@ -21,7 +25,13 @@ func TestClient(t *testing.T) {
 
 	<-time.After(time.Second)
 
-	hub := NewClient(":10000", 1)
+	hubOptions := ClientOptions{
+		UseTls:             true,
+		SkipCertValidation: true,
+		User:               "admin",
+		Password:           "admin",
+	}
+	hub := NewClient(":10000", &hubOptions)
 	defer hub.Close()
 
 	sources := [...]string{"Test"}

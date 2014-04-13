@@ -18,7 +18,14 @@ package main
 import "github.com/dbratus/loghub-go"
 
 func main() {
-	log := loghub.NewClient(":10001", 1)
+	options := ClientOptions{
+		UseTls:             true,
+		//SkipCertValidation: true, If the certificate is not signed by CA.
+		MaxConnections:     5,
+		User:               "writer",
+		Password:           "secret",
+	}
+	log := loghub.NewClient(":10001", &options)
 	defer log.Close()
 
 	log.Write(1, "Example", "Example message.")
@@ -36,7 +43,14 @@ import (
 )
 
 func main() {
-	hub := loghub.NewClient(":10000", 1)
+	options := ClientOptions{
+		UseTls:             true,
+		//SkipCertValidation: true, If the certificate is self-signed i.e. not signed by CA.
+		MaxConnections:     5,
+		User:               "reader",
+		Password:           "secret",
+	}
+	hub := loghub.NewClient(":10000", &options)
 	defer hub.Close()
 
 	sources := [...]string{"Test"}
@@ -58,7 +72,14 @@ import (
 )
 
 func main() {
-	hub := loghub.NewClient(":10000", 1)
+	options := ClientOptions{
+		UseTls:             true,
+		//SkipCertValidation: true, If the certificate is self-signed i.e. not signed by CA.
+		MaxConnections:     5,
+		User:               "admin",
+		Password:           "secret",
+	}
+	hub := loghub.NewClient(":10000", &options)
 	defer hub.Close()
 
 	hub.Truncate(time.Now(), "Test")
@@ -70,13 +91,17 @@ Getting log stats.
 ```Go
 package main
 
-import (
-	"github.com/dbratus/loghub-go"
-	"time"
-)
+import "github.com/dbratus/loghub-go"
 
 func main() {
-	hub := loghub.NewClient(":10000", 1)
+	options := ClientOptions{
+		UseTls:             true,
+		//SkipCertValidation: true, If the certificate is self-signed i.e. not signed by CA.
+		MaxConnections:     5,
+		User:               "admin",
+		Password:           "secret",
+	}
+	hub := loghub.NewClient(":10000", &options)
 	defer hub.Close()
 
 	for _ = range hub.Stat() {
