@@ -57,7 +57,7 @@ type ClientOptions struct {
 	MaxConnections int
 
 	//Whether to use TLS connection.
-	UseTls bool
+	UseTLS bool
 
 	//Whether to trust any certificate that the server returns.
 	SkipCertValidation bool
@@ -95,7 +95,7 @@ func NewClient(address string, options *ClientOptions) *Client {
 	}
 
 	cli := &Client{
-		lhproto.NewClient(address, maxConnections, options.UseTls, options.SkipCertValidation),
+		lhproto.NewClient(address, maxConnections, options.UseTLS, options.SkipCertValidation),
 		make(chan *newLogEntry),
 		cred,
 		make(chan chan bool),

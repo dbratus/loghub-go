@@ -19,7 +19,7 @@ import "github.com/dbratus/loghub-go"
 
 func main() {
 	options := ClientOptions{
-		UseTls:             true,
+		UseTLS:             true,
 		//SkipCertValidation: true, If the certificate is not signed by CA.
 		MaxConnections:     5,
 		User:               "writer",
@@ -44,7 +44,7 @@ import (
 
 func main() {
 	options := ClientOptions{
-		UseTls:             true,
+		UseTLS:             true,
 		//SkipCertValidation: true, If the certificate is self-signed i.e. not signed by CA.
 		MaxConnections:     5,
 		User:               "reader",
@@ -73,7 +73,7 @@ import (
 
 func main() {
 	options := ClientOptions{
-		UseTls:             true,
+		UseTLS:             true,
 		//SkipCertValidation: true, If the certificate is self-signed i.e. not signed by CA.
 		MaxConnections:     5,
 		User:               "admin",
@@ -95,7 +95,7 @@ import "github.com/dbratus/loghub-go"
 
 func main() {
 	options := ClientOptions{
-		UseTls:             true,
+		UseTLS:             true,
 		//SkipCertValidation: true, If the certificate is self-signed i.e. not signed by CA.
 		MaxConnections:     5,
 		User:               "admin",

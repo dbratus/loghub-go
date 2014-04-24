@@ -12,7 +12,7 @@ import (
 
 func TestClient(t *testing.T) {
 	logOptions := ClientOptions{
-		UseTls:             true,
+		UseTLS:             true,
 		SkipCertValidation: true,
 	}
 	log := NewClient(":10001", &logOptions)
@@ -26,7 +26,7 @@ func TestClient(t *testing.T) {
 	<-time.After(time.Second)
 
 	hubOptions := ClientOptions{
-		UseTls:             true,
+		UseTLS:             true,
 		SkipCertValidation: true,
 		User:               "admin",
 		Password:           "admin",
